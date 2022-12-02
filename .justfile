@@ -31,5 +31,5 @@ init:
 @build: init
     eval $(opam env); dune build
 
-@run puzzle: build
+@run puzzle:
     eval $(opam env); cd {{puzzle}}; dune exec ./puzzle{{puzzle}}.exe
