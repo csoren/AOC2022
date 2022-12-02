@@ -1,0 +1,7 @@
+{
+    "files.exclude": {
+        "_build": true,
+        "_opam": true,
+        ".initialized": true
+    }
+}
