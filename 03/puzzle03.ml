@@ -8,11 +8,11 @@ let char_to_priority = function
   | 'A'..'Z' as ch -> (int_of_char ch) - (int_of_char 'A') + 27
   | _ -> failwith "Unexpected input"
 
-let common_items l =
-  BatList.map (BatList.map (BatSet.of_list % String.explode)) l
-  |> BatList.map (BatSet.any % BatList.reduce BatSet.intersect)
+let common_items =
+  BatList.map (BatList.map (String.explode %> BatSet.of_list))
+  %> BatList.map (BatList.reduce BatSet.intersect %> BatSet.any)
 
-let solve = BatList.sum % BatList.map char_to_priority % common_items
+let solve = common_items %> BatList.map char_to_priority %> BatList.sum
 
 
 (* First puzzle *)
