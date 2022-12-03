@@ -12,7 +12,7 @@ let common_items l =
   BatList.map (BatList.map (BatSet.of_list % String.explode)) l
   |> BatList.map (BatSet.any % BatList.reduce BatSet.intersect)
 
-let sum_priorities = BatList.sum % BatList.map char_to_priority
+let solve = BatList.sum % BatList.map char_to_priority % common_items
 
 
 (* First puzzle *)
@@ -23,14 +23,14 @@ let halve_string s =
 
 let first_puzzle () =
   let rucksacks = BatList.map halve_string input in
-  Printf.printf "First puzzle, the sum of priorities is %d\n" (common_items rucksacks |> sum_priorities)
+  Printf.printf "First puzzle, the sum of priorities is %d\n" (solve rucksacks)
 
 
 (* Second puzzle *)  
 
 let second_puzzle () =
-  let three_elves = BatList.ntake 3 input in
-  Printf.printf "Second puzzle, the sum of priorities is %d\n" (common_items three_elves |> sum_priorities)
+  let groups_of_three_elves = BatList.ntake 3 input in
+  Printf.printf "Second puzzle, the sum of priorities is %d\n" (solve groups_of_three_elves)
 
 
 let () =
