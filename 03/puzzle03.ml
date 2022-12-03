@@ -14,23 +14,22 @@ let common_items l =
 
 let sum_priorities = BatList.sum % BatList.map char_to_priority
 
+
 (* First puzzle *)
 
 let halve_string s =
   let len = (BatString.length s) / 2 in
   [BatString.sub s 0 len; BatString.sub s len len]
 
-let rucksacks = BatList.map halve_string input
-
 let first_puzzle () =
+  let rucksacks = BatList.map halve_string input in
   Printf.printf "First puzzle, the sum of priorities is %d\n" (common_items rucksacks |> sum_priorities)
 
 
 (* Second puzzle *)  
 
-let three_elves = BatList.ntake 3 input
-
 let second_puzzle () =
+  let three_elves = BatList.ntake 3 input in
   Printf.printf "Second puzzle, the sum of priorities is %d\n" (common_items three_elves |> sum_priorities)
 
 
