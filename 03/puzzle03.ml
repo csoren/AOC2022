@@ -11,20 +11,33 @@ let char_to_priority = function
 let string_to_priority_set s =
   BatString.explode s |> BatList.map char_to_priority |> BatSet.of_list
 
+let common_priorities l =
+  BatList.map (BatList.map string_to_priority_set) l
+  |> BatList.map (BatSet.any % BatList.reduce BatSet.intersect)
+
+
+(* First puzzle *)
+
 let halve_string s =
   let len = (BatString.length s) / 2 in
-  (BatString.sub s 0 len, BatString.sub s len len)
+  [BatString.sub s 0 len; BatString.sub s len len]
 
-let rucksacks =
-  BatList.map halve_string input |> BatList.map (BatTuple.Tuple2.mapn string_to_priority_set)
-
-let common_priorities =
-  BatList.map (BatSet.any % BatTuple.Tuple2.uncurry BatSet.intersect) rucksacks
+let rucksacks = BatList.map halve_string input
 
 let first_puzzle () =
-  Printf.printf "First puzzle, the sum of priorities is %d\n" (List.sum common_priorities)
+  Printf.printf "First puzzle, the sum of priorities is %d\n" (common_priorities rucksacks |> List.sum)
+
+
+(* Second puzzle *)  
+
+let three_elves = BatList.ntake 3 input
+
+let second_puzzle () =
+  Printf.printf "Second puzzle, the sum of priorities is %d\n" (common_priorities three_elves |> List.sum)
+
 
 let () =
   print_newline ();
   first_puzzle ();
+  second_puzzle ();
   ()
