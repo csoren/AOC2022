@@ -16,7 +16,8 @@ let common_items =
   in
   List.map (string_list_to_char_set_list %> any_common_item_in_sets)
 
-let solve = common_items %> List.map char_to_priority %> List.sum
+let solve =
+  common_items %> List.map char_to_priority %> List.sum
 
 
 (* First puzzle *)
