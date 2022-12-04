@@ -6,7 +6,13 @@ let hand_of_string = function
   | "C" | "Z" -> Scissors
   | _ -> failwith "Unexpected input"
 
+let winning_hand_of = function 
+  | Rock -> Paper | Paper -> Scissors | Scissors -> Rock
 
+let losing_hand_of = function 
+  | Paper -> Rock | Scissors -> Paper | Rock -> Scissors
+
+  
 type winner = | Me | You | Draw
 
 let winner_of_string = function
