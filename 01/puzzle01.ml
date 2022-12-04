@@ -2,13 +2,13 @@ open Batteries
 open Extensions
 
 let input =
-  BatFile.lines_of "puzzle-input" |> BatList.of_enum
+  File.lines_of "puzzle-input" |> List.of_enum
 
 let bag_successive_ints l =
-  BatList.group_at ~separator:BatString.is_empty l |> BatList.map (BatList.map int_of_string)
+  List.group_at ~separator:String.is_empty l |> List.map (List.map int_of_string)
 
 let summed_bags =
-  bag_successive_ints input |> BatList.map BatList.sum
+  bag_successive_ints input |> List.map List.sum
 
 let sorted_bags =
   List.sort (Fun.flip Int.compare) summed_bags

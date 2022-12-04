@@ -1,8 +1,8 @@
-module BatList = struct
+module List = struct
   open Batteries
-  include BatList
+  include List
 
   let group_at ~separator:sep l =
-    BatList.nsplit sep l |> BatList.filter (not % BatList.is_empty)
+    List.nsplit sep l |> List.filter (not % List.is_empty)
 
 end
