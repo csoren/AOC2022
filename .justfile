@@ -2,7 +2,7 @@ initialized_marker := ".initialized"
 initialized := path_exists(initialized_marker)
 
 
-default:
+_default:
     just --list
 
 
@@ -27,9 +27,10 @@ init:
     eval $(opam env); dune clean
     rm {{initialized_marker}}
 
-# Build the HC800 emulator and firmware
+# Build all solutions
 @build: init
     eval $(opam env); dune build
 
-@run puzzle:
+# Run a specific puzzle
+@run puzzle: init
     eval $(opam env); cd {{puzzle}}; dune exec ./puzzle{{puzzle}}.exe

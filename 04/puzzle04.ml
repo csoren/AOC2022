@@ -12,15 +12,15 @@ let assignment_of_string =
 
 (* First part *)
 
-let range_fully_contained (big_start, big_end) (small_start, small_end) =
-  big_start <= small_start && small_end <= big_end
-
-let either_fully_contained (range1, range2) =
-  range_fully_contained range1 range2 || range_fully_contained range2 range1
+let fully_contained (range_1, range_2) =
+  let fully_contained' (big_start, big_end) (small_start, small_end) =
+    big_start <= small_start && small_end <= big_end
+  in
+  fully_contained' range_1 range_2 || fully_contained' range_2 range_1
 
 let first_puzzle () =
   let assignments = List.map assignment_of_string input in
-  Printf.printf "First puzzle, number of fully contained assignments: %d\n" (List.count_matching either_fully_contained assignments)
+  Printf.printf "First puzzle, number of fully contained assignments: %d\n" (List.count_matching fully_contained assignments)
 
 
 (* Second part *)
