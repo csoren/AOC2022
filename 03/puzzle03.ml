@@ -9,12 +9,12 @@ let char_to_priority = function
   | _ -> failwith "Unexpected input"
 
 let common_items =
-  let string_to_char_set =
+  let string_list_to_char_set_list =
     List.map (String.explode %> Set.of_list)
   in let any_common_item_in_sets =
     List.reduce Set.intersect %> Set.any 
   in
-  List.map string_to_char_set %> List.map any_common_item_in_sets
+  List.map (string_list_to_char_set_list %> any_common_item_in_sets)
 
 let solve = common_items %> List.map char_to_priority %> List.sum
 
