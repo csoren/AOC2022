@@ -3,5 +3,9 @@
         "_build": true,
         "_opam": true,
         ".initialized": true
+    },
+    "ocaml.sandbox": {
+        "kind": "opam",
+        "switch": "${workspaceFolder:AOC2022}"
     }
 }

@@ -17,7 +17,7 @@ let parse_state state =
     String.explode %> List.ntake 4 %> List.map (List.drop 1 %> List.hd) in
   let lines =
     List.map read_state_line state |> List.rev |> List.drop 1 |> transpose in
-  List.map (List.drop_while Char.is_whitespace %> List.rev) lines
+  List.map (List.drop_while (not % Char.is_letter) % List.rev) lines
 
 let get_next_number s =
   let start = String.drop_while (not % Char.is_digit) s in
@@ -29,19 +29,35 @@ let parse_instruction_line line =
   let (move, line') = get_next_number line in
   let (from, line'') = get_next_number line' in
   let (to', _) = get_next_number line'' in
-  let _ = Printf.printf "%d %d %d\n" move from to' in
   (move, from, to')
   
-let parse_instructions = List.map parse_instruction_line
+let parse_instructions = 
+  List.map parse_instruction_line
 
-let (state, _) =
+let (state, instructions) =
   match List.group_at ~separator:String.is_empty input with
   | [state; instructions] -> (parse_state state, parse_instructions instructions)
   | _ -> failwith "invalid input"
 
+let rec run_instruction state (count, from, dest) =
+  if count = 0 then
+    state
+  else
+    let from_stack = Array.get state (from - 1) in
+    let dest_stack = Array.get state (dest - 1) in
+    let head = List.hd from_stack in
+    ignore @@ Array.set state (from - 1) (List.tl from_stack);
+    ignore @@ Array.set state (dest - 1) (head :: dest_stack);
+    run_instruction state (count - 1, from, dest)
+
+
+let state' =
+  List.fold_left run_instruction (Array.of_list state) instructions
+  |> Array.to_list
+
 let first_puzzle () =
-  print_endline (List.to_string String.of_list state);
-  ()
+  let heads = List.map List.hd state' |> String.of_list in
+  Printf.printf "Part 1, top crates: %s\n" heads
 
 let () =
   print_newline ();
