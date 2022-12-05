@@ -4,85 +4,42 @@ open Extensions
 let input =
   File.lines_of "puzzle-input" |> List.of_enum
 
-let heads = List.map List.hd
-
-let tails = List.map List.tl
-
-let rec transpose = function
-  | [] :: _ -> []
-  | l -> heads l :: (tails l |> transpose)
+let parse_state_line =
+  String.ntake 4 %> List.map (Fun.flip String.get 1)
 
 let parse_state state =
-  let read_state_line =
-    String.explode %> List.ntake 4 %> List.map (List.drop 1 %> List.hd) in
-  let lines =
-    List.map read_state_line state |> List.rev |> List.drop 1 |> transpose in
-  List.map (List.drop_while (not % Char.is_letter) % List.rev) lines
+  let stacks = List.map parse_state_line state |> List.rdrop 1 |> List.transpose in
+  List.map (List.drop_while Char.is_whitespace) stacks
 
-let get_next_number s =
-  let start = String.drop_while (not % Char.is_digit) s in
-  let num_str = String.take_while Char.is_digit start in
-  let skipped = String.drop (String.length num_str) start in
-  (String.to_int num_str, skipped)
-  
 let parse_instruction_line line =
-  let (move, line') = get_next_number line in
-  let (from, line'') = get_next_number line' in
-  let (to', _) = get_next_number line'' in
-  (move, from, to')
+  let parts = String.split_on_char ' ' line |> Array.of_list in
+  let move = Array.get parts 1 |> int_of_string in
+  let from = Array.get parts 3 |> int_of_string in
+  let dest = Array.get parts 5 |> int_of_string in
+  (move, from - 1, dest - 1)
   
 let parse_instructions = 
   List.map parse_instruction_line
 
 let (state, instructions) =
-  match List.group_at ~separator:String.is_empty input with
-  | [state; instructions] -> (parse_state state, parse_instructions instructions)
-  | _ -> failwith "invalid input"
+  List.split_match String.is_empty input 
+  |> Tuple2.map parse_state parse_instructions
 
+let execute_instruction fn state (count, from, dest) =
+  let top = Array.get state from |> List.take count |> fn in
+  Array.get_set (List.append top) state dest;
+  Array.get_set (List.drop count) state from
+  
+let solve execute =
+  let state' = Array.of_list state in
+  List.iter (execute state') instructions;
+  state' |> Array.to_list |> List.heads |> String.of_list
 
-(* Part 1 *)
+let print_part part fn =
+  Printf.printf "Part %d, top crates: %s\n" part (solve @@ execute_instruction fn)
 
-let rec run_instruction state (count, from, dest) =
-  if count = 0 then
-    state
-  else
-    let from_stack = Array.get state (from - 1) in
-    let dest_stack = Array.get state (dest - 1) in
-    let head = List.hd from_stack in
-    ignore @@ Array.set state (from - 1) (List.tl from_stack);
-    ignore @@ Array.set state (dest - 1) (head :: dest_stack);
-    run_instruction state (count - 1, from, dest)
-
-
-let first_puzzle () =
-  let state' =
-    List.fold_left run_instruction (Array.of_list state) instructions
-    |> Array.to_list in
-  let heads = List.map List.hd state' |> String.of_list in
-  Printf.printf "Part 1, top crates: %s\n" heads
-
-
-(* Part 2 *)
-
-let run_instruction' state (count, from, dest) =
-  let from_stack = Array.get state (from - 1) in
-  let dest_stack = Array.get state (dest - 1) in
-  let tops = List.take count from_stack in
-  ignore @@ Array.set state (from - 1) (List.drop count from_stack);
-  ignore @@ Array.set state (dest - 1) (tops @ dest_stack);
-  state
-
-
-let second_puzzle () =
-  let state' =
-    List.fold_left run_instruction' (Array.of_list state) instructions
-    |> Array.to_list
-    |> List.map (fun s -> if List.is_empty s then [' '] else s)
-  in
-  let heads = List.map List.hd state' |> String.of_list in
-  Printf.printf "Part 2, top crates: %s\n" heads
 
 let () =
   print_newline ();
-  first_puzzle ();
-  second_puzzle ()
+  print_part 1 List.rev;
+  print_part 2 Fun.id
