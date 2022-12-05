@@ -39,6 +39,9 @@ let (state, instructions) =
   | [state; instructions] -> (parse_state state, parse_instructions instructions)
   | _ -> failwith "invalid input"
 
+
+(* Part 1 *)
+
 let rec run_instruction state (count, from, dest) =
   if count = 0 then
     state
@@ -51,14 +54,35 @@ let rec run_instruction state (count, from, dest) =
     run_instruction state (count - 1, from, dest)
 
 
-let state' =
-  List.fold_left run_instruction (Array.of_list state) instructions
-  |> Array.to_list
-
 let first_puzzle () =
+  let state' =
+    List.fold_left run_instruction (Array.of_list state) instructions
+    |> Array.to_list in
   let heads = List.map List.hd state' |> String.of_list in
   Printf.printf "Part 1, top crates: %s\n" heads
 
+
+(* Part 2 *)
+
+let run_instruction' state (count, from, dest) =
+  let from_stack = Array.get state (from - 1) in
+  let dest_stack = Array.get state (dest - 1) in
+  let tops = List.take count from_stack in
+  ignore @@ Array.set state (from - 1) (List.drop count from_stack);
+  ignore @@ Array.set state (dest - 1) (tops @ dest_stack);
+  state
+
+
+let second_puzzle () =
+  let state' =
+    List.fold_left run_instruction' (Array.of_list state) instructions
+    |> Array.to_list
+    |> List.map (fun s -> if List.is_empty s then [' '] else s)
+  in
+  let heads = List.map List.hd state' |> String.of_list in
+  Printf.printf "Part 2, top crates: %s\n" heads
+
 let () =
   print_newline ();
-  first_puzzle ()
+  first_puzzle ();
+  second_puzzle ()
