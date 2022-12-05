@@ -28,3 +28,26 @@ let rec transpose = function
   | l -> heads l :: (tails l |> transpose)
 
 let rdrop n = List.rev %> List.drop n %> List.rev 
+
+let window size list =
+  let rec window' list acc = 
+    let w = take size list in
+    if length w < size then acc
+    else (window' [@tailcall]) (drop 1 list) (w :: acc)
+  in
+  rev @@ window' list []
+
+let grade f init list =
+  let step (acc, x) el =
+    let y = f x el in
+    (y :: acc, y)
+  in
+  fold_left step ([], init) list |> fst |> rev
+
+let window_triplets list =
+  grade (fun (_,b,c) d -> (b,c,d)) (0,0,0) list
+  |> drop 2
+
+let window_tuplets list =
+  grade (fun (_,b) c -> (b,c)) (0,0) list
+  |> drop 1
