@@ -19,8 +19,7 @@ let height (m: 'a t) =
   Array.get m 0 |> Array.length 
 
 let row n (m: 'a t) =
-  List.range 0 `To (width m - 1)
-  |> List.fold_left (fun acc column -> m.(column).(n) :: acc) []
+  Array.fold_left (fun acc column -> column.(n) :: acc) [] m
   |> List.rev
 
 let transpose (m: 'a t) =
