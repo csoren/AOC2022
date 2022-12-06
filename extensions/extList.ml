@@ -12,6 +12,10 @@ let int_list_to_string = to_string string_of_int
 
 let int_list_list_to_string = to_string int_list_to_string
 
+let bool_list_to_string = List.map (Bool.to_int) %> int_list_to_string
+
+let bool_list_list_to_string = to_string bool_list_to_string
+
 let group_at ~separator:sep l =
   List.nsplit sep l |> List.filter (not % List.is_empty)
 
