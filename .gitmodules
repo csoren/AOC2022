@@ -1,0 +1,4 @@
+[submodule "extensions"]
+	path = extensions
+	url = git@github.com:csoren/AOC-Extensions.git
+	branch = main
