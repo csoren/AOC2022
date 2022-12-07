@@ -33,4 +33,4 @@ init:
 
 # Run a specific puzzle
 @run puzzle: init
-    eval $(opam env); cd {{puzzle}}; dune exec ./puzzle{{puzzle}}.exe
+    eval $(opam env); cd {{puzzle}}; OCAMLRUNPARAM=b dune exec ./puzzle{{puzzle}}.exe

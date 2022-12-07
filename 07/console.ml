@@ -7,6 +7,10 @@ type command =
 
 type process = command * string list
 
+let command_to_string = function
+  | Cd dir -> "cd " ^ dir
+  | Ls -> "ls"
+
 let input =
   File.lines_of "test-input" |> List.of_enum
 
@@ -23,5 +27,5 @@ let to_process = function
   | _ -> failwith "Empty process"
 
 let processes lines =
-  List.group_when ~first:(String.starts_with "$") lines
+  List.group_when ~first:(Fun.flip String.starts_with "$ ") lines
   |> List.map to_process
