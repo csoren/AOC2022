@@ -40,26 +40,26 @@ and size_of_dir l =
 let rec dir_sizes (dirs: Directory.directory) =
   let dir_sizes' entry =
     match entry with
-      | (name, Directory.Directory files) ->
-          (name, size_of_dir files) :: dir_sizes files
+      | (_, Directory.Directory files) ->
+          size_of_dir files :: dir_sizes files
       | _ -> []
   in
   List.map dir_sizes' dirs |> List.flatten
 
-let compare v1 v2 =
-  (snd v1) - (snd v2)
+let first sizes =
+  sizes |> List.filter ((>=) 100000) |> List.sum
+
+let second sizes =
+  let free_at_least = (List.hd sizes) - 40000000 in
+  List.filter ((<) free_at_least) sizes |> List.last
 
 let solve lines =
-  let procs = Console.processes lines in
-  let dirs = run_commands procs in
-  let sizes = dir_sizes dirs |> List.sort compare |> List.rev in
-  let first = List.map snd sizes |> List.filter (fun v -> v < 100000) |> List.sum in
-  let free_at_least = (List.hd sizes |> snd) - 40000000 in
-  let second = List.filter (fun (_,size) -> size >= free_at_least) sizes |> List.last in
-  (first, second)
+  let dirs = Console.processes lines |> run_commands in
+  let sizes = dir_sizes dirs |> List.sort (Fun.flip (-)) in
+  (first sizes, second sizes)
 
 let () =
   print_newline ();
   let (first, second) = solve input in
   Printf.printf "Part 1, sum of sizes: %d\n" (first);
-  Printf.printf "Part 2, largest dir (%s): %d\n" (fst second) (snd second);
+  Printf.printf "Part 2, largest dir: %d\n" (second);
