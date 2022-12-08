@@ -4,13 +4,12 @@ open Extensions
 let input =
   File.lines_of "puzzle-input" |> List.of_enum
   
-let ls_output_line_to_entry line: (string * Directory.entry) =
-  match line with
-  | ("dir", name) -> (name, Directory [])
-  | (size, name) -> (name, File (int_of_string size))
+let ls_output_line_to_entry = function
+  | ("dir", name) -> (name, Directory.Directory [])
+  | (size, name) -> (name, Directory.File (int_of_string size))
 
-let ls_output_to_directory lines =
-  List.map (fun s -> String.split s ~by:" " |> ls_output_line_to_entry) lines
+let ls_output_to_directory =
+  List.map (fun s -> String.split s ~by:" " |> ls_output_line_to_entry)
 
 let rec run_command current_dir (procs: Console.process list) =
   match procs with
@@ -26,22 +25,20 @@ let rec run_command current_dir (procs: Console.process list) =
   | [] -> 
       (current_dir, procs)
 
-let run_commands (procs: Console.process list) =
-  run_command Directory.root procs |> fst
+let run_commands =
+  run_command Directory.root %> fst
 
-let rec size_of_entry (entry: Directory.entry) =
-  match entry with
-    | File size -> size
-    | Directory dir -> size_of_dir dir
-and size_of_dir l =
+let rec size_of_dir l =
+  let size_of_entry = function
+    | Directory.File size -> size
+    | Directory.Directory dir -> size_of_dir dir
+  in
   List.map (snd %> size_of_entry) l |> List.sum
 
 let rec dir_sizes (dirs: Directory.directory) =
-  let dir_sizes' entry =
-    match entry with
-      | (_, Directory.Directory files) ->
-          size_of_dir files :: dir_sizes files
-      | _ -> []
+  let dir_sizes' = function
+    | (_, Directory.Directory files) -> size_of_dir files :: dir_sizes files
+    | _ -> []
   in
   List.map dir_sizes' dirs |> List.flatten
 
@@ -50,11 +47,11 @@ let first sizes =
 
 let second sizes =
   let free_at_least = (List.hd sizes) - 40000000 in
-  List.filter ((<) free_at_least) sizes |> List.last
+  List.filter ((<) free_at_least) sizes |> List.sort (Fun.flip (-)) |> List.last
 
 let solve lines =
   let dirs = Console.processes lines |> run_commands in
-  let sizes = dir_sizes dirs |> List.sort (Fun.flip (-)) in
+  let sizes = dir_sizes dirs in
   (first sizes, second sizes)
 
 let () =
