@@ -30,37 +30,36 @@ let rec run_command current_dir (procs: Console.process list) =
 let run_commands (procs: Console.process list) =
   run_command Directory.root procs |> fst
 
-module Part1 = struct
-  let rec size_of_entry (entry: Directory.entry) =
+let rec size_of_entry (entry: Directory.entry) =
+  match entry with
+    | File size -> size
+    | Directory dir -> size_of_dir dir
+and size_of_dir l =
+  List.map (snd %> size_of_entry) l |> List.sum
+
+let rec dir_sizes (dirs: Directory.directory) =
+  let dir_sizes' entry =
     match entry with
-      | File size -> size
-      | Directory dir -> size_of_dir dir
-  and size_of_dir l =
-    List.map (snd %> size_of_entry) l |> List.sum
+      | (name, Directory.Directory files) ->
+          (name, size_of_dir files) :: dir_sizes files
+      | _ -> []
+  in
+  List.map dir_sizes' dirs |> List.flatten
 
-  let rec dir_sizes (dirs: Directory.directory) =
-    let dir_sizes' entry =
-      match entry with
-        | (name, Directory.Directory files) ->
-            (name, size_of_dir files) :: dir_sizes files
-        | _ -> []
-    in
-    List.map dir_sizes' dirs |> List.flatten
+let compare v1 v2 =
+  (snd v1) - (snd v2)
 
-  let solve lines =
-    let procs = Console.processes lines in
-    let dirs = run_commands procs in
-    let sizes = dir_sizes dirs in
-    (*
-    print_endline (Directory.to_string dirs);
-    print_guess stdout sizes;
-    *)
-    List.map snd sizes |> List.filter (fun v -> v < 100000) |> List.sum
-
-  let print () =
-    Printf.printf "Part 1, sum of sizes: %d\n" (solve input)
-end
+let solve lines =
+  let procs = Console.processes lines in
+  let dirs = run_commands procs in
+  let sizes = dir_sizes dirs |> List.sort compare |> List.rev in
+  let first = List.map snd sizes |> List.filter (fun v -> v < 100000) |> List.sum in
+  let free_at_least = (List.hd sizes |> snd) - 40000000 in
+  let second = List.filter (fun (_,size) -> size >= free_at_least) sizes |> List.last in
+  (first, second)
 
 let () =
   print_newline ();
-  Part1.print ()
+  let (first, second) = solve input in
+  Printf.printf "Part 1, sum of sizes: %d\n" (first);
+  Printf.printf "Part 2, largest dir (%s): %d\n" (fst second) (snd second);
