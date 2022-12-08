@@ -9,9 +9,8 @@ let ls_output_line_to_entry line: (string * Directory.entry) =
   | ("dir", name) -> (name, Directory [])
   | (size, name) -> (name, File (int_of_string size))
 
-let rec ls_output_to_directory = function
-  | s :: tail -> (String.split s ~by:" " |> ls_output_line_to_entry) :: (ls_output_to_directory tail)
-  | [] -> [] 
+let ls_output_to_directory lines =
+  List.map (fun s -> String.split s ~by:" " |> ls_output_line_to_entry) lines
 
 let rec run_command current_dir (procs: Console.process list) =
   match procs with
