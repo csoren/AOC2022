@@ -21,7 +21,7 @@ let root =
 let find (dir: directory) name =
   match List.find_opt (fun (n, _) -> n = name) dir with
   | Some (_, f) -> f
-  | _ -> failwith (Printf.sprintf "File %s not found in directory" name)
+  | _ -> failwith (Printf.sprintf "Entry %s not found in directory" name)
 
 let find_directory dir name =
   match find dir name with

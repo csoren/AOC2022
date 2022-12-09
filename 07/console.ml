@@ -11,9 +11,6 @@ let command_to_string = function
   | Cd dir -> "cd " ^ dir
   | Ls -> "ls"
 
-let input =
-  File.lines_of "test-input" |> List.of_enum
-
 let to_command line =
   match String.split_on_char ' ' line with
   | "cd" :: args -> Cd (List.hd args)
@@ -22,7 +19,7 @@ let to_command line =
 
 let to_process = function
   | input :: output ->
-      let cmd = to_command (String.sub input 2 @@ String.length input - 2) in
+      let cmd = to_command (String.drop 2 input) in
       (cmd, output)
   | _ -> failwith "Empty process"
 
