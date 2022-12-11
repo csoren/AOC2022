@@ -10,15 +10,13 @@ _default:
 init:
     #!/bin/sh
     if ! {{initialized}}; then
-        sudo apt -y install pkg-config
-
         opam switch create -y "." --deps-only --package=ocaml-variants.4.14.0+options,ocaml-option-flambda
         eval $(opam env)
 
         opam update
         opam install -y --deps-only .
+        opam install -y dune.3.6.1 ocaml-lsp-server
         opam install -y vector.1.0.0 batteries.3.5.1
-        opam install -y dune ocaml-lsp-server
         touch {{initialized_marker}};
     fi
 
