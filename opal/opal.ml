@@ -41,7 +41,7 @@ let parse parser input =
 (* primitives --------------------------------------------------------------- *)
 
 type 'token input = 'token LazyStream.t
-type ('token, 'result) monad = ('result * 'token input) option
+(* type ('token, 'result) monad = ('result * 'token input) option *)
 type ('token, 'result) parser = 'token input -> ('result * 'token input) option
 
 let return x input = Some(x, input)

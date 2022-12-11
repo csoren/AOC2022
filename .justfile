@@ -11,24 +11,24 @@ init:
     #!/bin/sh
     if ! {{initialized}}; then
         opam switch create -y "." --deps-only --package=ocaml-variants.4.14.0+options,ocaml-option-flambda
-        eval $(opam env)
+        eval $(opam env --set-switch --switch=.)
 
         opam update
         opam install -y --deps-only .
-        opam install -y dune.3.6.1 ocaml-lsp-server
+        opam install -y dune.3.6.1 ocaml-lsp-server ocamlformat ocamlformat-rpc
         opam install -y vector.1.0.0 batteries.3.5.1
         touch {{initialized_marker}};
     fi
 
 # Cleans the directory, removes any built files
 @clean:
-    eval $(opam env); dune clean
+    eval $(opam env --set-switch --switch=.); dune clean
     rm {{initialized_marker}}
 
 # Build all solutions
 @build: init
-    eval $(opam env); dune build
+    eval $(opam env --set-switch --switch=.); dune build
 
 # Run a specific puzzle
 @run puzzle: init
-    eval $(opam env); cd {{puzzle}}; OCAMLRUNPARAM=b dune exec ./puzzle{{puzzle}}.exe
+    eval $(opam env --switch=.); cd {{puzzle}}; OCAMLRUNPARAM=b dune exec ./puzzle{{puzzle}}.exe
