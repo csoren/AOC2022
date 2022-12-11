@@ -4,11 +4,13 @@ open Opal
 
 let digits = spaces >> many1 digit => String.implode => int_of_string
 
+let big_digits = spaces >> many1 digit => String.implode => Big_int.of_string
+
 let number_list = sep_by1 digits (token ",")
 
-let multiply_int = token "*" >> digits => fun n -> Multiply n
+let multiply_int = token "*" >> big_digits => fun n -> Multiply n
 
-let plus_int = token "+" >> digits => fun n -> Plus n
+let plus_int = token "+" >> big_digits => fun n -> Plus n
 
 let multiply_old = token "*" >> spaces >> token "old" => fun _ -> MultiplyOld
 
@@ -20,9 +22,9 @@ let operation_line = spaces >> token "Operation:" >> spaces >> operation
 
 let headline = token "Monkey" >> digits << token ":"
 
-let items_line = spaces >> token "Starting items:" >> spaces >> number_list
+let items_line = spaces >> token "Starting items:" >> spaces >> number_list => List.map Big_int.of_int
 
-let test_line = spaces >> token "Test:" >> spaces >> token "divisible by" >> digits
+let test_line = spaces >> token "Test:" >> spaces >> token "divisible by" >> big_digits
 
 let if_line clause = spaces >> token "If" >> spaces >> token clause >> token ":" >> spaces >> token "throw to monkey" >> digits
 
