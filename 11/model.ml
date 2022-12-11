@@ -18,13 +18,15 @@ type monkey = {
   divisible_by: int;
   when_true: int;
   when_false: int;
+  inspected: int;
 }
 
 let monkey_to_string m =
-  Printf.sprintf "{ number=%d; items=%s; operation=%s; divisible_by=%d; when_true=%d; when_false=%d }"
+  Printf.sprintf "{ number=%d; items=%s; operation=%s; divisible_by=%d; when_true=%d; when_false=%d; inspected=%d }"
     m.number
     (List.int_list_to_string m.items)
     (operation_to_string m.operation)
     m.divisible_by
     m.when_true
     m.when_false
+    m.inspected

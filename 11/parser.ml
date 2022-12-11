@@ -39,7 +39,8 @@ let monkey =
     operation;
     divisible_by;
     when_true;
-    when_false
+    when_false;
+    inspected = 0
   }
 
 let monkey_list =
