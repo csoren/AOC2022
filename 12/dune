@@ -1,0 +1,6 @@
+(executable
+ (name puzzle12)
+ (preprocess (pps ppx_deriving.show))
+ (libraries extensions batteries)
+)
+ 

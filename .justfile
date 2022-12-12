@@ -16,7 +16,7 @@ init:
         opam update
         opam install -y --deps-only .
         opam install -y dune.3.6.1 ocaml-lsp-server ocamlformat ocamlformat-rpc
-        opam install -y vector.1.0.0 batteries.3.5.1
+        opam install -y vector.1.0.0 batteries.3.5.1 ppx_deriving
         touch {{initialized_marker}};
     fi
 
