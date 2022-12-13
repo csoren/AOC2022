@@ -1,0 +1,4 @@
+(executable
+ (name puzzle12)
+ (libraries extensions batteries))
+ 
