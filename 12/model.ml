@@ -12,7 +12,7 @@ type square_status =
 type square = {
   kind: square_kind;
   height: int;
-  mutable visited: square_status;
+  visited: square_status;
 }
 
 let square_to_string s =
@@ -25,4 +25,8 @@ let field_row_to_string row =
 
 let field_to_string m =
   Matrix.rows m |> List.map field_row_to_string |> String.join "\n"
+
+let distance_of = function
+  | NotVisited -> failwith "not visited"
+  | Visited d -> d
 
