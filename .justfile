@@ -27,8 +27,8 @@ init:
 
 # Build all solutions
 @build: init
-    eval $(opam env --set-switch --switch=.); dune build
+    eval $(opam env --set-switch --switch=.); dune build --profile=release
 
 # Run a specific puzzle
 @run puzzle: init
-    eval $(opam env --switch=.); cd {{puzzle}}; OCAMLRUNPARAM=b dune exec ./puzzle{{puzzle}}.exe
+    eval $(opam env --switch=.); cd {{puzzle}}; OCAMLRUNPARAM=b dune exec --profile=release ./puzzle{{puzzle}}.exe

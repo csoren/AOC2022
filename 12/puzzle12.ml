@@ -74,16 +74,20 @@ let shortest_overall_path m =
 let solve_part2 m =
   shortest_overall_path m
 
-let rec solve_parts (start_x, start_y) m =
+let rec solve_parts (start_x, start_y) m iterations =
   match m.(start_x).(start_y).visited with
-    | Visited d -> (d, solve_part2 m)
-    | NotVisited -> solve_parts (start_x, start_y) (iterate m)
+    | Visited d -> (iterations, d, solve_part2 m)
+    | NotVisited -> solve_parts (start_x, start_y) (iterate m) (iterations + 1)
 
 let solve input =
+  let t1 = Sys.time () in
   let field = squares input in
-  let (part1, part2) = solve_parts (find_first_kind Start field) field in
+  let (iterations, part1, part2) = solve_parts (find_first_kind Start field) field 0 in
+  let t2 = Sys.time () in
   Printf.printf "Part 1, distance %d\n" part1;
-  Printf.printf "Part 2, distance %d\n" part2
+  Printf.printf "Part 2, distance %d\n" part2;
+  Printf.printf "Running time: %f sec\n" (t2 -. t1);
+  Printf.printf "Iterations: %d\n" iterations
 
 let () =
   print_newline ();
