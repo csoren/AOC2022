@@ -1,4 +1,4 @@
 (executable
  (name puzzle12)
- (libraries extensions batteries))
+ (libraries extensions batteries domainslib))
  

@@ -16,7 +16,7 @@ init:
         opam update
         opam install -y --deps-only .
         opam install -y dune.3.6.1 ocaml-lsp-server ocamlformat
-        opam install -y vector.1.0.0 batteries.3.6.0
+        opam install -y vector.1.0.0 batteries.3.6.0 domainslib.0.5.0
         touch {{initialized_marker}};
     fi
 

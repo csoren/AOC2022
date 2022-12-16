@@ -2,6 +2,8 @@ open Batteries
 open Extensions
 open Model
 
+module T = Domainslib.Task
+
 let input =
   File.lines_of "puzzle-input" |> List.of_enum
 
@@ -56,14 +58,28 @@ let find_best_neighbour m (x, y) =
   |> List.map snd
   |> List.min_opt Int.compare
 
-let iterate m =
-  let r = Matrix.copy m in
-  let set_visited ((x,y), d) = r.(x).(y) <- { m.(x).(y) with visited = Visited (d + 1)} in
-  Matrix.coords m
-  |> List.filter (fun (x,y) -> m.(x).(y).visited = NotVisited)
-  |> List.map (fun (x,y) -> find_best_neighbour m (x,y) |> Option.map (fun d -> ((x,y), d)))
-  |> List.iter (Option.may set_visited);
-  r
+let fill_line m row =
+  if row >= 0 && row < Matrix.height m then
+    let set_visited ((x,y), d) = m.(x).(y) <- { m.(x).(y) with visited = Visited (d + 1)} in
+    Matrix.row_coords row m
+    |> List.filter (fun (x,y) -> m.(x).(y).visited = NotVisited)
+    |> List.map (fun (x,y) -> find_best_neighbour m (x,y) |> Option.map (fun d -> ((x,y), d)))
+    |> List.iter (Option.may set_visited)
+
+let fill_lines pool num_tasks m rows =
+  List.map (fun row -> T.async pool (fun _ -> fill_line m row)) rows
+  |> List.iter (T.await pool)
+
+let range_skip first last skip =
+  let steps = (last + skip - 1 - first) / skip in
+  List.range 0 `To (steps - 1) |> 
+  List.map (fun step -> Int.min (step * skip + first) last)
+
+let iterate pool num_tasks m =
+  List.range 0 `To (Matrix.height m + (num_tasks - 1) * 2)
+  |> List.map (fun last_row -> range_skip (last_row - num_tasks * 2) last_row 2)
+  |> List.iter(fill_lines pool num_tasks m)
+
 
 let shortest_overall_path m =
   Matrix.coords m
@@ -74,16 +90,21 @@ let shortest_overall_path m =
 let solve_part2 m =
   shortest_overall_path m
 
-let rec solve_parts (start_x, start_y) m iterations =
+let rec solve_parts pool num_tasks (start_x, start_y) m iterations =
   match m.(start_x).(start_y).visited with
     | Visited d -> (iterations, d, solve_part2 m)
-    | NotVisited -> solve_parts (start_x, start_y) (iterate m) (iterations + 1)
+    | NotVisited -> solve_parts pool num_tasks (start_x, start_y) (iterate pool num_tasks m; m) (iterations + 1)
 
 let solve input =
-  let t1 = Sys.time () in
+  let num_domains = Sys.core_count () in
+  let pool = T.setup_pool ~name:"Pool" ~num_domains:(num_domains - 1) () in
   let field = squares input in
-  let (iterations, part1, part2) = solve_parts (find_first_kind Start field) field 0 in
+  let t1 = Sys.time () in
+  let (iterations, part1, part2) = 
+    T.run pool (fun _ -> solve_parts pool num_domains (find_first_kind Start field) field 0) in
   let t2 = Sys.time () in
+  T.teardown_pool pool;
+  Printf.printf "Using %d threads\n" num_domains;
   Printf.printf "Part 1, distance %d\n" part1;
   Printf.printf "Part 2, distance %d\n" part2;
   Printf.printf "Running time: %f sec\n" (t2 -. t1);
