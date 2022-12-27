@@ -10,7 +10,7 @@ _default:
 init:
     #!/bin/sh
     if ! {{initialized}}; then
-        opam switch create -y "." --deps-only --package=ocaml-variants.5.0.0~rc1+options,ocaml-option-flambda
+        opam switch create -y "." --deps-only --package=ocaml-variants.5.0.0+options,ocaml-option-flambda
         eval $(opam env --set-switch --switch=.)
 
         opam update
