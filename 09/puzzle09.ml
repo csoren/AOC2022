@@ -1,10 +1,6 @@
 open Batteries
 open Extensions
 
-type direction =
-  | Horizontal of int
-  | Vertical of int
-
 let input =
   File.lines_of "puzzle-input" |> List.of_enum
 

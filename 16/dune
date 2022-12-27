@@ -1,0 +1,3 @@
+(executable
+ (name puzzle16)
+ (libraries extensions batteries opal))
