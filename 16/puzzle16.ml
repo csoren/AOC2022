@@ -52,6 +52,17 @@ type path_visit = {
   paths_open: room list
 }
 
+type state = {
+  visits: path_visit list;
+  opened: string Set.t;
+}
+
+let add_visit visit state =
+  { state with visits = visit :: state.visits }
+
+let open_valve valve state =
+  { state with opened = Set.add valve state.opened }
+
 let visit_to_string visit = 
   Printf.sprintf "%s (%s)" visit.path_valve (List.map (fun r -> r.valve) visit.paths_open |> List.string_list_to_string)
 
@@ -114,37 +125,42 @@ let neighbours (room: room) visit =
   | Some visit -> visit.paths_open
   | None -> room.connections
 
-let rec visit_rooms path minutes room descendents =
+let rec visit_rooms state minutes room descendents =
   match descendents with
-    | [] -> []
-    | descendent :: tail ->
-        let path' = { path_valve = room.valve; paths_open = tail } :: path in
-        max_pressure' path' minutes descendent :: visit_rooms path minutes room tail
+  | [] -> []
+  | descendent :: tail ->
+      let state' = add_visit { path_valve = room.valve; paths_open = tail } state in
+      max_pressure' state' minutes descendent :: visit_rooms state minutes room tail
 
-and max_pressure' path minutes room =
-  let last_visit = last_visit room.valve path in
+and max_pressure' state minutes room =
+  let last_visit = last_visit room.valve state.visits in
   match neighbours room last_visit with
   | [] -> 0
   | paths_open -> begin
-      let is_open = Option.is_none last_visit && room.pressure <> 0 in
-      let (minutes', pressure) =
+      let is_open = Set.mem room.valve state.opened in
+      let (state', minutes', pressure) =
         if is_open then
-          let minutes'' = minutes - 1 in
-          (minutes'', room.pressure * minutes'')
+          (state, minutes, 0)
         else
-          (minutes, 0)
+          let minutes'' = minutes - 1 in
+          (open_valve room.valve state, minutes'', room.pressure * minutes'')
       in
-      let pressure' = pressure + (visit_rooms path (minutes' - 1) room paths_open
+      let pressure' = pressure + (visit_rooms state' (minutes' - 1) room paths_open
       |> List.max_opt Int.compare
       |> Option.default 0) in
-      Printf.printf "%s = %d\n" (List.rev path |> List.to_string visit_to_string) pressure';
+      Printf.printf "%s = %d\n" (List.rev state'.visits |> List.to_string visit_to_string) pressure';
       pressure'
     end
 
 let start_path = { path_valve = start_room.valve; paths_open = start_room.connections } :: []
 
+let empty_state = {
+  visits = [];
+  opened = Set.empty
+}
+
 let max_pressure start_room =
-  max_pressure' [] 30 start_room
+  max_pressure' empty_state 30 start_room
 
 let solve_part1 = max_pressure
 
