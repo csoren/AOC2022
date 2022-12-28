@@ -26,8 +26,7 @@ let room =
     valve = room;
     pressure = flow_rate;
     connection_names = valves;
-    connections = [];
-    blind = false
+    connections = []
   }    
 
 let room_list =
