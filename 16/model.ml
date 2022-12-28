@@ -1,3 +1,4 @@
+open Batteries
 open Extensions
 
 type room = {
@@ -11,8 +12,8 @@ type room = {
 let room_to_string room =
   Printf.sprintf "{ valve=%s; pressure=%d; connections=%s }\n" room.valve room.pressure (room.connections |> List.map (fun v -> v.valve) |> List.string_list_to_string )
 
-
-module RoomMap = Map.Make(String)
+module RoomMap = Map.String
+type room_map = room RoomMap.t
 
 (*
 let room_is_leaf room =
@@ -64,10 +65,7 @@ let rec remove_zero_pressure rooms =
   end
 *)
 
-let connect rooms =
+let connect rooms: room_map =
   let room_map = List.map (fun v -> (v.valve, v)) rooms |> List.to_seq |> RoomMap.of_seq in
   RoomMap.iter (fun _ v -> v.connections <- List.map (Fun.flip RoomMap.find room_map) v.connection_names) room_map;
   room_map
-  
-  
-  
