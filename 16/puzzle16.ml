@@ -20,6 +20,11 @@ let start_room =
 let valve_rooms =
   RoomMap.to_seq rooms |> Seq.filter (fun (_, r) -> r.pressure <> 0) |> Seq.map snd |> List.of_seq
 
+let distance_iterate distances =
+  let neighbour_distance cell = Map.String.find cell distances |> Option.map (( + ) 1) in
+  let distance room = List.flatmap_opt neighbour_distance room.connection_names |> List.hd_opt in
+  Map.String.to_seq distances |> Seq.map (fun (v, d) -> Option.default_delayed (RoomMap.find v rooms |> distance))
+
 let distance_to_all_valves valve: int Map.String.t =
   Map.String.empty
 
