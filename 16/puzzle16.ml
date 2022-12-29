@@ -4,7 +4,7 @@ open Model
 open Opal
 
 let input =
-    LazyStream.of_channel (In_channel.open_bin "puzzle-input")
+    LazyStream.of_channel (In_channel.open_bin "test-input")
 
 let rooms_to_string rooms =
   RoomMap.to_seq rooms |> Seq.map snd |> List.of_seq |> List.to_string room_to_string
@@ -67,7 +67,6 @@ let distance_to from dest =
   (* print_endline ("Distance " ^ from.valve ^ "->" ^ dest.valve); *)
   Map.String.find from.valve valve_distances |> Map.String.find dest.valve
 
-(* Best path *)  
 let rec max_pressure' path pressure opened minutes room =
   if minutes <= 0 then begin
     (* Printf.printf "%s = %d\n" path pressure; *)
@@ -84,11 +83,40 @@ let rec max_pressure' path pressure opened minutes room =
     in
     r
 
-let max_pressure start_room =
-  max_pressure' "AA" 0 (Set.singleton "AA") 31 start_room
+module Part1 = struct
+  (* Best path part 1 *)  
+  let max_pressure start_room =
+    max_pressure' "AA" 0 (Set.singleton "AA") (30 + 1) start_room
 
-let solve_part1 = max_pressure
+  let solve () = max_pressure start_room
+end
+
+module Part2 = struct
+  (* Best path part 2 *)  
+  let rec max_pressure'' path pressure opened (minutes, room) (other_minutes, other_room) =
+    if minutes < other_minutes then
+      max_pressure'' path pressure opened (other_minutes, other_room) (minutes, room)
+    else begin
+      let minutes' = minutes - 1 in
+      let pressure' = pressure + room.pressure * minutes' in
+      let opened' = Set.add room.valve opened in
+      let closed_valves = List.filter (fun v -> Set.mem v.valve opened' |> not) valve_rooms in
+      let r =
+        List.map (fun dest -> max_pressure'' (path ^ ">" ^ dest.valve) pressure' opened' (minutes' - (distance_to room dest), dest) (other_minutes, other_room)) closed_valves
+        |> List.max_opt Int.compare
+        |> Option.default pressure'
+      in
+      r
+    end
+
+  let max_pressure start_room =
+    max_pressure'' "AA" 0 (Set.singleton "AA") (26 + 1, start_room) (26 + 1, start_room)
+
+  let solve () = max_pressure start_room
+end
+
 
 let () =
   print_newline ();
-  Printf.printf "Part 1, max pressure: %d\n" (max_pressure start_room)
+  Printf.printf "Part 1, max pressure: %d\n" (Part1.solve ());
+  Printf.printf "Part 2, max pressure: %d\n" (Part2.solve ())
