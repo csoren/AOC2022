@@ -78,7 +78,7 @@ let range_skip first last skip =
 let iterate pool num_tasks m =
   List.range 0 `To (Matrix.height m + (num_tasks - 1) * 2)
   |> List.map (fun last_row -> range_skip (last_row - num_tasks * 2) last_row 2)
-  |> List.iter(fill_lines pool num_tasks m)
+  |> List.iter (fill_lines pool num_tasks m)
 
 
 let shortest_overall_path m =
@@ -96,7 +96,7 @@ let rec solve_parts pool num_tasks (start_x, start_y) m iterations =
     | NotVisited -> solve_parts pool num_tasks (start_x, start_y) (iterate pool num_tasks m; m) (iterations + 1)
 
 let solve input =
-  let num_domains = Sys.core_count () in
+  let num_domains = 2 in
   let pool = T.setup_pool ~name:"Pool" ~num_domains:(num_domains - 1) () in
   let field = squares input in
   let t1 = Sys.time () in

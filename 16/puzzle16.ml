@@ -4,7 +4,7 @@ open Model
 open Opal
 
 let input =
-    LazyStream.of_channel (In_channel.open_bin "test-input")
+    LazyStream.of_channel (In_channel.open_bin "puzzle-input")
 
 let rooms_to_string rooms =
   RoomMap.to_seq rooms |> Seq.map snd |> List.of_seq |> List.to_string room_to_string
@@ -92,25 +92,30 @@ module Part1 = struct
 end
 
 module Part2 = struct
-  (* Best path part 2 *)  
-  let rec max_pressure'' path pressure opened (minutes, room) (other_minutes, other_room) =
-    if minutes < other_minutes then
-      max_pressure'' path pressure opened (other_minutes, other_room) (minutes, room)
+  let rec max_pressure' pressure opened guys =
+    if List.is_empty guys then 
+      pressure
     else begin
+      let guys' = List.sort (fun guy1 guy2 -> Int.compare (fst guy2) (fst guy1)) guys in
+      let (minutes, room) = List.hd guys' in
       let minutes' = minutes - 1 in
       let pressure' = pressure + room.pressure * minutes' in
-      let opened' = Set.add room.valve opened in
-      let closed_valves = List.filter (fun v -> Set.mem v.valve opened' |> not) valve_rooms in
-      let r =
-        List.map (fun dest -> max_pressure'' (path ^ ">" ^ dest.valve) pressure' opened' (minutes' - (distance_to room dest), dest) (other_minutes, other_room)) closed_valves
-        |> List.max_opt Int.compare
-        |> Option.default pressure'
-      in
-      r
-    end
-
+      match List.filter (fun v -> Set.mem v.valve opened |> not) valve_rooms with
+      | [] -> 
+          max_pressure' pressure' opened (List.tl guys')
+      | closed_valves ->
+          closed_valves
+          |> List.map (fun dest ->
+            let minutes'' = minutes' - (distance_to room dest) in
+            let guys'' = if minutes'' > 1 then (minutes'', dest) :: List.tl guys' else List.tl guys' in
+            max_pressure' pressure' (Set.add dest.valve opened) guys'')
+          |> List.max_opt Int.compare
+          |> Option.default pressure'
+  end
+  
+  
   let max_pressure start_room =
-    max_pressure'' "AA" 0 (Set.singleton "AA") (26 + 1, start_room) (26 + 1, start_room)
+    max_pressure' 0 (Set.singleton "AA") [(26 + 1, start_room); (26 + 1, start_room)]
 
   let solve () = max_pressure start_room
 end
