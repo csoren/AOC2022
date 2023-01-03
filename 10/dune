@@ -1,0 +1,3 @@
+(executable
+ (name puzzle10)
+ (libraries extensions batteries))
