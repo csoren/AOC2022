@@ -2,7 +2,7 @@ open Batteries
 open Extensions
 
 let input =
-  File.lines_of "test-input" |> List.of_enum |> List.hd
+  File.lines_of "puzzle-input" |> List.of_enum |> List.hd
 
 let string_to_block_line s =
   let line = 
@@ -14,7 +14,7 @@ let string_to_block_line s =
 let string_list_to_block l =
   let block = List.map string_to_block_line l in
   let pad = 4 - (List.length block) in
-  List.append (List.make pad 0) block
+  (List.make pad 0) @ block
 
 let blocks =
   File.lines_of "blocks" |> List.of_enum
@@ -43,8 +43,9 @@ let print_blocks =
 let initial_field =
   [ 0x7F ]
 
-let prepare_field =
-  List.append (List.make 7 0)
+let prepare_field field =
+  let field' = List.drop_while ((=) 0) field in
+  (List.make 7 0) @ field'
 
 let can_place_block block field =
   (* let field_top = List.take 4 field in
@@ -93,49 +94,79 @@ let move instruction block field =
 let merge_block_with_field block field =
   let field_head = List.take 4 field in
   let field_tail = List.drop 4 field in
-  List.append (List.map2 (lor) field_head block) field_tail
+  (List.map2 (lor) field_head block) @ field_tail
 
 let drop_block instructions block field =
-  let rec drop' instructions block field_head field_tail =
-    if Seq.is_empty instructions then (instructions, field)
-    else
-    (* let field' = (List.append (List.rev field_head) (merge_block_with_field block field_tail)) in
-    Printf.printf "%s\n\n" (block_to_string field'); *)
-    let instruction = Seq.hd instructions in
-    let instructions' = Seq.tl instructions in
-    let (moved, block') = move instruction block field_tail in
-    if moved then
-      drop' instructions' block' (List.hd field_tail :: field_head) (List.tl field_tail)
+  let rec drop' block field_head field_tail instructions =
+    if Seq.is_empty instructions then
+      (Seq.empty, (List.rev field_head) @ field_tail)
     else begin
-      let field' = (List.append (List.rev field_head) (merge_block_with_field block' field_tail)) in
-      (instructions', field')
+      let instruction = Seq.hd instructions in
+      let instructions' = Seq.tl instructions in
+      (* print_endline "Move"; *)
+      (* let field' = (List.append (List.rev field_head) (merge_block_with_field block field_tail)) in
+      Printf.printf "%s\n\n" (block_to_string field'); *)
+      let (moved, block') = move instruction block field_tail in
+      if moved then begin
+        (* print_endline "Move block"; *)
+        drop' block' (List.hd field_tail :: field_head) (List.tl field_tail) instructions'
+      end else begin
+        (* Printf.printf "Block dropped, rem %d\n" (Seq.length instructions');  *)
+        let field' = (List.rev field_head) @ (merge_block_with_field block' field_tail) in
+        (instructions', field')
+      end
     end
   in
-  drop' instructions block [] field
+  (* print_endline "Drop block"; *)
+  drop' block [] field instructions
 
 let rec drop_blocks n instructions blocks field =
-  if n > 0 then
+  if n > 0 && (Seq.is_empty instructions |> not) then
     let (instructions', field') = drop_block instructions (Seq.hd blocks) field in
-    let field'' = List.drop_while ((=) 0) field' in
-    drop_blocks (n - 1) instructions' (Seq.tl blocks) (prepare_field field'')
+    drop_blocks (n - 1) instructions' (Seq.tl blocks) (prepare_field field')
   else
-    (field, List.drop_while ((=) 0) field |> List.length |> Fun.flip (-) 1)
+    let field' = List.drop_while ((=) 0) field |> List.rdrop 1 in
+    (field', List.length field')
 
 let solve_instructions instructions =
-  drop_blocks (List.length instructions) (Seq.of_list instructions) (Seq.cycle (Seq.of_list blocks)) (prepare_field initial_field)
+  drop_blocks 10000000000 (Seq.of_list instructions) (Seq.cycle (Seq.of_list blocks)) (prepare_field initial_field)
 
 let solve_part1 () =
   (* let (field, height) = solve_instructions instructions in
   Printf.printf "%s\n\n" (block_to_string field); *)
-  let (_, height) = drop_blocks 2022 (Seq.cycle (Seq.of_list instructions)) (Seq.cycle (Seq.of_list blocks)) (prepare_field initial_field) in
+  let (field, height) = drop_blocks 2022 (Seq.cycle (Seq.of_list instructions)) (Seq.cycle (Seq.of_list blocks)) (prepare_field initial_field) in
+  print_endline (List.to_string (Printf.sprintf "%02X") field);
   height
 
+let compare_cycles index length a =
+  List.range 0 `To (length - 1) |> List.for_all (fun i -> a.(index + i) = a.(length + index + i))
+
+let rec determine_tower_cycle () =
+  let match_size = 32 in
+  Random.self_init ();
+  let (field', _) = drop_blocks 10000 (Seq.of_list instructions |> Seq.cycle) (Seq.of_list blocks |> Seq.cycle) (prepare_field initial_field) in
+  let field'' = List.rev field' |> Array.of_list in
+  let index = Random.int (List.length field' - match_size) in
+  let block = Array.sub field'' index match_size in
+  match Array.find_subs block field'' with
+    | i1 :: i2 :: _ -> begin
+        let length = i2 - i1 in
+        Printf.printf "Possible cycle length %d\n" length; flush stdout;
+        match List.range 0 `To (Array.length field'' - length * 2) |> List.find_opt (fun i -> compare_cycles i length field'') with
+          | Some index -> (index, length)
+          | None -> determine_tower_cycle ()
+      end
+    | _ -> determine_tower_cycle ()
+
 let solve_part2 () =
-  drop_blocks 1000000000000 (Seq.cycle (Seq.of_list instructions)) (Seq.cycle (Seq.of_list blocks)) (prepare_field initial_field)
+  let (index, length) = determine_tower_cycle () in
+  Printf.printf "Tower cycle at %d, length %d\n" index length
 
 let () =
   print_newline ();
   print_blocks blocks;
+  (* Printf.printf "Cycles: %d\n" (determine_instruction_cycle ()); *)
   Printf.printf "Part 1, height = %d\n" (solve_part1 ());
+  solve_part2 ()
   (* flush stdout;
   Printf.printf "Part 2, height = %d\n" (solve_part2 ()) *)
