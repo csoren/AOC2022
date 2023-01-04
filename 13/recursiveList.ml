@@ -5,6 +5,10 @@ type t =
   | Int of int
   | List of t list
 
+let rec to_string = function
+  | Int d -> Int.to_string d
+  | List l -> List.to_string to_string l 
+
 let rec compare lhs rhs =
   match (lhs, rhs) with
     | ( Int l,  Int r) -> Int.compare l r
@@ -42,3 +46,7 @@ let parse =
 
 let of_file file =
   Opal.parse parse @@ LazyStream.of_channel (In_channel.open_text file)
+
+let of_string s =
+  Opal.parse parse @@ LazyStream.of_string s
+  
