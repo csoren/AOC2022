@@ -1,0 +1,4 @@
+(executable
+ (name puzzle14)
+  (libraries extensions batteries opal))
+ 
