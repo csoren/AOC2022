@@ -45,13 +45,28 @@ let count_until_dropped field =
   in
   count 0
 
-let solve_part1 field =
+let solve_part1 paths =
+  let field = Field.of_paths paths initial_sand_pos in
   count_until_dropped field
 
+let count_until_blocked field (x, y) =
+  let rec count n =
+    if Field.get field x y = Field.Empty then begin
+      let _ = drop_sand field in
+      count (n + 1)
+    end else
+      n
+  in
+  count 0
+  
+let solve_part2 paths =
+  let bottom = List.flatten paths |> List.map snd |> List.max ~cmp:Int.compare |> (+) 2 in  
+  let bottom_path = [ (500 - bottom, bottom); (500 + bottom, bottom) ]in
+  let field = Field.of_paths (bottom_path :: paths) initial_sand_pos in
+  count_until_blocked field initial_sand_pos
 
 let () =
   print_newline ();
   let rock_paths = List.map RockPath.of_string input in
-  let field = Field.of_paths rock_paths initial_sand_pos in
-  print_field field;
-  Printf.printf "Part 1: %d\n" (solve_part1 field)
+  Printf.printf "Part 1: %d\n" (solve_part1 rock_paths);
+  Printf.printf "Part 2: %d\n" (solve_part2 rock_paths)
