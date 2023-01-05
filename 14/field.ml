@@ -35,15 +35,15 @@ let get field x y =
     Empty
 
 let rec add_vertical_line field x from_y to_y =
-  if 
-    from_y > to_y then add_vertical_line field x to_y from_y
+  if from_y > to_y then 
+    add_vertical_line field x to_y from_y
   else
     List.range from_y `To to_y |> List.iter (fun y -> set field x y Rock)
 
 
 let rec add_horizontal_line field y from_x to_x =
-  if 
-    from_x > to_x then add_horizontal_line field y to_x from_x
+  if from_x > to_x then
+    add_horizontal_line field y to_x from_x
   else
     List.range from_x `To to_x |> List.iter (fun x -> set field x y Rock)
 

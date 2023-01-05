@@ -32,9 +32,9 @@ let move_sand field (x, y) =
 let drop_sand field =
   let rec drop_sand' pos = 
     match move_sand field pos with
-    | MovedTo v -> drop_sand' v
-    | Settled -> false
-    | Dropped -> true
+      | MovedTo v -> drop_sand' v
+      | Settled -> false
+      | Dropped -> true
   in
   drop_sand' initial_sand_pos
 
