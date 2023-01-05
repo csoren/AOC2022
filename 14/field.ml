@@ -10,6 +10,8 @@ type t = {
 }
 
 
+let width field = Matrix.width field.field
+
 let height field = Matrix.height field.field
 
 let get_row field row =
@@ -21,6 +23,16 @@ let rows field =
 let set field x y v =
   Matrix.set field.field (x - field.x) (y - field.y) v
 
+let inside field x y =
+  let x' = x - field.x in
+  let y' = y - field.y in
+  x' >= 0 && x' < width field && y' >= 0 && y' < height field
+
+let get field x y =
+  if inside field x y then
+    Matrix.get field.field (x - field.x) (y - field.y)
+  else
+    Empty
 
 let rec add_vertical_line field x from_y to_y =
   if 
