@@ -2,7 +2,7 @@ open Batteries
 open Extensions
 
 let input =
-  File.lines_of "puzzle-input" |> List.of_enum |> List.hd
+  File.lines_of "test-input" |> List.of_enum |> List.hd
 
 let string_to_block_line s =
   let line = 
@@ -128,12 +128,7 @@ let rec drop_blocks n instructions blocks field =
     let field' = List.drop_while ((=) 0) field |> List.rdrop 1 in
     (field', List.length field')
 
-let solve_instructions instructions =
-  drop_blocks 10000000000 (Seq.of_list instructions) (Seq.cycle (Seq.of_list blocks)) (prepare_field initial_field)
-
 let solve_part1 () =
-  (* let (field, height) = solve_instructions instructions in
-  Printf.printf "%s\n\n" (block_to_string field); *)
   let (field, height) = drop_blocks 2022 (Seq.cycle (Seq.of_list instructions)) (Seq.cycle (Seq.of_list blocks)) (prepare_field initial_field) in
   print_endline (List.to_string (Printf.sprintf "%02X") field);
   height
@@ -158,15 +153,38 @@ let rec determine_tower_cycle () =
       end
     | _ -> determine_tower_cycle ()
 
+let rec blocks_to_reach_height' n instructions blocks field count =
+  let (instructions, field) = drop_block instructions (Seq.hd blocks) field in
+  let field = List.drop_while ((=) 0) field in
+  let height = List.length field - 1 in
+  let count = count + 1 in
+  (* Printf.printf "%d=%d want %d, " height count n; flush stdout; *)
+  if height >= n then begin
+    (* print_endline "Done"; *)
+    count
+  end else begin
+    (* print_endline "Again"; *)
+    blocks_to_reach_height' n instructions (Seq.tl blocks) (prepare_field field) count
+  end
+
+let blocks_to_reach_height n =
+  let count = blocks_to_reach_height' n (Seq.cycle (Seq.of_list instructions)) (Seq.cycle (Seq.of_list blocks)) (prepare_field initial_field) 0 in
+  Printf.printf "Reached %d in %d blocks\n" n count; flush stdout;
+  count
+
 let solve_part2 () =
   let (index, length) = determine_tower_cycle () in
-  Printf.printf "Tower cycle at %d, length %d\n" index length
+  Printf.printf "Tower cycle at %d, length %d\n" index length; flush stdout;
+  let bottom_blocks = blocks_to_reach_height (index + length) in
+  let cycle_blocks = blocks_to_reach_height (index + length * 2) - bottom_blocks in
+  let top_blocks = 1000000000000 - bottom_blocks in
+  let cycles = top_blocks / cycle_blocks in
+  let final_blocks = Int.modulo top_blocks cycle_blocks in
+  index + cycles * length + final_blocks
 
 let () =
   print_newline ();
   print_blocks blocks;
   (* Printf.printf "Cycles: %d\n" (determine_instruction_cycle ()); *)
   Printf.printf "Part 1, height = %d\n" (solve_part1 ());
-  solve_part2 ()
-  (* flush stdout;
-  Printf.printf "Part 2, height = %d\n" (solve_part2 ()) *)
+  Printf.printf "Part 2, height = %d\n" (solve_part2 ())
