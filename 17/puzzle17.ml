@@ -2,7 +2,7 @@ open Batteries
 open Extensions
 
 let input =
-  File.lines_of "test-input" |> List.of_enum |> List.hd
+  File.lines_of "puzzle-input" |> List.of_enum |> List.hd
 
 let string_to_block_line s =
   let line = 
@@ -148,7 +148,7 @@ let rec determine_tower_cycle () =
         let length = i2 - i1 in
         Printf.printf "Possible cycle length %d\n" length; flush stdout;
         match List.range 0 `To (Array.length field'' - length * 2) |> List.find_opt (fun i -> compare_cycles i length field'') with
-          | Some index -> (index, length)
+          | Some index -> (index + length, length)
           | None -> determine_tower_cycle ()
       end
     | _ -> determine_tower_cycle ()
@@ -173,14 +173,19 @@ let blocks_to_reach_height n =
   count
 
 let solve_part2 () =
-  let (index, length) = determine_tower_cycle () in
-  Printf.printf "Tower cycle at %d, length %d\n" index length; flush stdout;
-  let bottom_blocks = blocks_to_reach_height (index + length) in
-  let cycle_blocks = blocks_to_reach_height (index + length * 2) - bottom_blocks in
-  let top_blocks = 1000000000000 - bottom_blocks in
-  let cycles = top_blocks / cycle_blocks in
-  let final_blocks = Int.modulo top_blocks cycle_blocks in
-  index + cycles * length + final_blocks
+  let drop_blocks n =
+    let (_, l ) = drop_blocks n (Seq.cycle (Seq.of_list instructions)) (Seq.cycle (Seq.of_list blocks)) (prepare_field initial_field) in
+    l
+  in
+  let blocks_to_drop = 1000000000000 in
+  let (height_bottom, height_cycle_length) = determine_tower_cycle () in
+  Printf.printf "Tower cycle at height %d, length %d\n" height_bottom height_cycle_length; flush stdout;
+  let blocks_bottom = blocks_to_reach_height height_bottom in
+  let blocks_cycle_length = blocks_to_reach_height (height_bottom + height_cycle_length) - blocks_bottom in
+  let cycles = (blocks_to_drop - blocks_bottom) / blocks_cycle_length in
+  let blocks_last = blocks_to_drop - (blocks_bottom + cycles * blocks_cycle_length) in
+  let height_last = drop_blocks (blocks_bottom + blocks_cycle_length + blocks_last) - (height_bottom + height_cycle_length) in
+  height_bottom + cycles * height_cycle_length + height_last
 
 let () =
   print_newline ();
