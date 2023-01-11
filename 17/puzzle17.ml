@@ -18,24 +18,20 @@ let move instruction block field =
 
 let drop_block instructions block field =
   let rec drop' block field_head field_tail instructions =
-    if Seq.is_empty instructions then
-      (Seq.empty, (List.rev field_head) @ field_tail)
-    else begin
-      let (moved, block') = move (Seq.hd instructions) block field_tail in
-      let instructions' = Seq.tl instructions in
-      if moved then
-        drop' block' (List.hd field_tail :: field_head) (List.tl field_tail) instructions'
-      else
-        let field' = (List.rev field_head) @ (Field.merge_block block' field_tail) in
-        (instructions', field')
-    end
+    let instructions' = Seq.tl instructions in
+    match move (Seq.hd instructions) block field_tail with
+      | (true, block') -> 
+          drop' block' (List.hd field_tail :: field_head) (List.tl field_tail) instructions'
+      | (false, block') ->
+          let field' = (List.rev field_head) @ (Field.merge_block block' field_tail) in
+          (instructions', field')
   in
   drop' block [] field instructions
 
 
 let drop_blocks n = 
   let rec drop_blocks' n instructions blocks field =
-    if n > 0 && (Seq.is_empty instructions |> not) then
+    if n > 0 && (not @@ Seq.is_empty instructions) then
       let (instructions', field') = drop_block instructions (Seq.hd blocks) field in
       drop_blocks' (n - 1) instructions' (Seq.tl blocks) (Field.prepare field')
     else
@@ -62,7 +58,6 @@ let rec find_tower_cycle () =
   match Array.find_subs block field'' with
     | i1 :: i2 :: _ -> begin
         let length = i2 - i1 in
-        Printf.printf "Possible cycle length %d\n" length; flush stdout;
         match List.range 0 `To (Array.length field'' - length * 2) |> List.find_opt (fun i -> compare_cycles i length field'') with
           | Some index -> (index + length, length)
           | None -> find_tower_cycle ()
@@ -84,8 +79,7 @@ let blocks_to_reach_height n =
 
 
 let solve_part2 () =
-  let drop_blocks n = 
-    snd @@ drop_blocks n in
+  let drop_blocks n = snd @@ drop_blocks n in
   let blocks_to_drop = 1000000000000 in
   let (lines_bottom, lines_cycle_length) = find_tower_cycle () in
   (* Now we know how long the cycle of lines is and where it is.
