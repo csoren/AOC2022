@@ -34,3 +34,11 @@ let count_open_sides d p =
   ] in
   List.map (tuple3_add p) neighbours
   |> List.count_matching (fun p -> exists d p |> not)
+
+
+let bounding_box d =
+  let min_max fn = CoordSet.to_seq d |> Seq.map fn |> Seq.min_max in
+  let (min_x, max_x) = min_max Tuple3.first in
+  let (min_y, max_y) = min_max Tuple3.second in
+  let (min_z, max_z) = min_max Tuple3.third in
+  ((min_x, min_y, min_z), (max_x, max_y, max_z))
