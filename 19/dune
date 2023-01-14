@@ -1,0 +1,3 @@
+(executable
+ (name puzzle19)
+ (libraries extensions batteries opal))
